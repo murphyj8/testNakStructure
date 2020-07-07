@@ -39,5 +39,6 @@
             }]
         ],
         'defines': [ 'NAPI_CPP_EXCEPTIONS' ]
-    }]
+    }
+    ]
 }
