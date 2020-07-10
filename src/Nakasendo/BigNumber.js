@@ -1,5 +1,9 @@
 
-const bindings = require('../../build/Release/nakasendo.node');
+//const bindings = require('../../build/Release/nakasendo.node');
+var binary = require('node-pre-gyp');//
+var path = require('path')
+var binding_path = binary.find(path.resolve(path.join(__dirname,'../../package.json')));
+var nakesendoBindings = require(binding_path)
 
 class BigNumber{
     #m_Value;
@@ -7,7 +11,7 @@ class BigNumber{
     #m_Mod;
     
     constructor(IsDecimal=false,mod=0,size=1024){
-        this.#m_Value = bindings.generate_random(size, IsDecimal);
+        this.#m_Value = nakesendoBindings.generate_random(size, IsDecimal);
         this.#m_IsDecimal = IsDecimal;
         this.#m_Mod = mod;
         
@@ -55,9 +59,9 @@ function AddBigNumber (a, b){
     
     var result='0';
     if( a.mod == 0){
-        result = bindings.bn_add(a.value.toString(), b.value.toString(), a.isdec);
+        result = nakesendoBindings.bn_add(a.value.toString(), b.value.toString(), a.isdec);
     }else{
-        result =  bindings.bn_add_mod(a.value, b.value, a.mod, a.isdec);
+        result =  nakesendoBindings.bn_add_mod(a.value, b.value, a.mod, a.isdec);
     }
     
     var retVal = new BigNumber (a.isdec, b.mod);
@@ -75,9 +79,9 @@ function SubBigNumber (a, b){
     
     var result='0';
     if( a.mod == 0){
-        result = bindings.bn_sub(a.value.toString(), b.value.toString(), a.isdec);
+        result = nakesendoBindings.bn_sub(a.value.toString(), b.value.toString(), a.isdec);
     }else{
-        result = bindings.bn_sub_mod(a.value, b.value, a.mod, a.isdec);
+        result = nakesendoBindings.bn_sub_mod(a.value, b.value, a.mod, a.isdec);
     }
     
     var retVal = new BigNumber (a.isdec, b.mod);
@@ -94,9 +98,9 @@ function MulBigNumber (a, b){
     
     var result='0';
     if( a.mod == 0){
-        result =  bindings.bn_mul(a.value.toString(), b.value.toString(), a.isdec);
+        result =  nakesendoBindings.bn_mul(a.value.toString(), b.value.toString(), a.isdec);
     }else{
-        result =  bindings.bn_mul_mod(a.value, b.value, a.mod, a.isdec);
+        result =  nakesendoBindings.bn_mul_mod(a.value, b.value, a.mod, a.isdec);
     }
     
     var retVal = new BigNumber (a.isdec, b.mod);
@@ -114,9 +118,9 @@ function DivBigNumber (a, b){
     var result='0';
     
     if( a.mod == 0){
-        result = bindings.bn_div(a.value.toString(), b.value.toString(), a.isdec);
+        result = nakesendoBindings.bn_div(a.value.toString(), b.value.toString(), a.isdec);
     }else{
-        result = bindings.bn_div_mod(a.value, b.value, a.mod, a.isdec);
+        result = nakesendoBindings.bn_div_mod(a.value, b.value, a.mod, a.isdec);
     }
     var retVal = new BigNumber (a.isdec, b.mod);
     retVal.SetValue = result;
@@ -128,10 +132,10 @@ function InvBigNumber(a){
     if(a.mod == 0){
         var BigNumOne = new BigNumber(a.dec,a.mod);
         BigNumOne.SetValue('1');
-        result =  bindings.bn_div(BigNumOne.value,a.value,a.isdec);
+        result =  nakesendoBindings.bn_div(BigNumOne.value,a.value,a.isdec);
         
     }else{
-        result = bindings.bn_inv_mod(a.value, a.mod,a.isdec);
+        result = nakesendoBindings.bn_inv_mod(a.value, a.mod,a.isdec);
     }
     var retVal = new BigNumber (a.isdec, a.mod);
     retVal.SetValue = result;

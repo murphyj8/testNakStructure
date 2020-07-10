@@ -1,4 +1,9 @@
-const bindings = require('../../build/Release/nakasendo.node');
+var binary = require('node-pre-gyp');//
+var path = require('path')
+console.log(__dirname)
+var binding_path = binary.find(path.resolve(path.join(__dirname,'../../package.json')));
+console.log(binding_path);
+var nakesendoBindings = require(binding_path)
 
 
 class polynomial{
@@ -14,7 +19,7 @@ class polynomial{
         this.#m_modulo = modulo;
         
             
-        this.#m_coeffs = bindings.randomPolynomial(this.#m_degree, this.#m_modulo, this.#m_IsDecimal);        
+        this.#m_coeffs = nakesendoBindings.randomPolynomial(this.#m_degree, this.#m_modulo, this.#m_IsDecimal);        
     }
     
     
@@ -47,7 +52,7 @@ class polynomial{
     }
     
     evaluate(a){
-        return bindings.evalulatePolynomial(this.#m_coeffs, a, this.#m_modulo, this.#m_IsDecimal);
+        return nakesendoBindings.evalulatePolynomial(this.#m_coeffs, a, this.#m_modulo, this.#m_IsDecimal);
     }
     
 }

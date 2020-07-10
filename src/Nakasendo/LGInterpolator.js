@@ -1,4 +1,7 @@
-const bindings = require('../../build/Release/nakasendo.node');
+var binary = require('node-pre-gyp');//
+var path = require('path')
+var binding_path = binary.find(path.resolve(path.join(__dirname,'../../package.json')));
+var nakesendoBindings = require(binding_path)
 
 
 class LGInterpolator{
@@ -26,12 +29,12 @@ class LGInterpolator{
     }
     
     evaluate(xval){
-        return bindings.LGInterpolatorFull(this.#m_xfx, xval, this.#m_modulo, this.#m_IsDecimal);
+        return nakesendoBindings.LGInterpolatorFull(this.#m_xfx, xval, this.#m_modulo, this.#m_IsDecimal);
     }
     
     
     evaluateBasis(xval, basisPt){
-        return bindings.LGInterpolatorSingle(this.#m_xfx, xval, this.#m_modulo, this.#m_IsDecimal, basisPt);
+        return nakesendoBindings.LGInterpolatorSingle(this.#m_xfx, xval, this.#m_modulo, this.#m_IsDecimal, basisPt);
     }
 
 }

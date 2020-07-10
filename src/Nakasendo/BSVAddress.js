@@ -1,4 +1,9 @@
-const bindings = require('../../build/Release/nakasendo.node');
+var binary = require('node-pre-gyp');//
+var path = require('path')
+console.log(__dirname)
+var binding_path = binary.find(path.resolve(path.join(__dirname,'../../package.json')));
+console.log(binding_path);
+var nakesendoBindings = require(binding_path)
 
 
 class BSVAddress{
@@ -17,7 +22,7 @@ class BSVAddress{
         
         var addr = []
         if(addressInfo.length != 5){
-            addr = bindings.createBSVAddress(this.#m_key, this.#m_version);
+            addr = nakesendoBindings.createBSVAddress(this.#m_key, this.#m_version);
         }else{
             addr = addressInfo;
         }

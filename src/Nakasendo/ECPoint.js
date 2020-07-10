@@ -1,4 +1,8 @@
-const bindings = require('../../build/Release/nakasendo.node');
+//const bindings = require('../../build/Release/nakasendo.node');
+var binary = require('node-pre-gyp');//
+var path = require('path')
+var binding_path = binary.find(path.resolve(path.join(__dirname,'../../package.json')));
+var nakesendoBindings = require(binding_path)
 
 
 class ECPoint{
@@ -13,7 +17,7 @@ class ECPoint{
         if(nid != 0)
             this.#m_Nid = nid;
             
-        this.#m_Value = bindings.ec_pt_generate_random(this.#m_Nid,this.#m_IsDecimal,this.#m_IsCompressed);        
+        this.#m_Value = nakesendoBindings.ec_pt_generate_random(this.#m_Nid,this.#m_IsDecimal,this.#m_IsCompressed);        
     }
     
     set SetValue(value){
@@ -60,19 +64,19 @@ class ECPoint{
     }
     
     GetGroupOrder(){
-        return bindings.ec_pt_GetGroupOrder(this.#m_Nid,this.#m_IsDecimal);
+        return nakesendoBindings.ec_pt_GetGroupOrder(this.#m_Nid,this.#m_IsDecimal);
     }
     
     GetGroupDegree(){
-        return bindings.ec_pt_GetGroupDegree(this.#m_Nid, this.#m_IsDecimal);
+        return nakesendoBindings.ec_pt_GetGroupDegree(this.#m_Nid, this.#m_IsDecimal);
     }
     
     CheckonCurve(){
-        return bindings.ec_pt_CheckonCurve(this.#m_Value, this.#m_Nid, this.#m_IsDecimal);
+        return nakesendoBindings.ec_pt_CheckonCurve(this.#m_Value, this.#m_Nid, this.#m_IsDecimal);
     }
     
     GetAffineCoordinates(){
-        var coords = bindings.ec_pt_GetAffineCoordinates(this.#m_Value,this.#m_Nid,this.#m_IsDecimal);
+        var coords = nakesendoBindings.ec_pt_GetAffineCoordinates(this.#m_Value,this.#m_Nid,this.#m_IsDecimal);
         return coords;
     }
     
@@ -84,7 +88,7 @@ function AddECPoint (a, b){
         throw new Error('EC point properties (decimal or nid) not equal');
     }  
     
-    var result = bindings.ec_pt_Add(a.value, b.value, a.nid, a.isdec, a.isCompressed);
+    var result = nakesendoBindings.ec_pt_Add(a.value, b.value, a.nid, a.isdec, a.isCompressed);
     // create a return of type ECPoint
     var retval = new ECPoint(a.nid,a.isdec,a.isCompressed);
     retval.SetValue = result;
@@ -95,25 +99,25 @@ function EC_Compare(a,b){
     if(!(a.isdec == b.isdec) || !(a.nid == b.nid) || !(a.isCompressed == b.isCompressed)){
         throw new Error('EC point properties (decimal or nid) not equal');
     }
-    return (bindings.ec_pt_compare(a.value, b.value, a.nid, a.isdec));
+    return (nakesendoBindings.ec_pt_compare(a.value, b.value, a.nid, a.isdec));
 }
 
 function EC_Double(a){
-   var result = bindings.ec_pt_double(a.value, a.nid, a.isdec, a.isCompressed);
+   var result = nakesendoBindings.ec_pt_double(a.value, a.nid, a.isdec, a.isCompressed);
    var retval = new ECPoint(a.nid,a.isdec,a.isCompressed);
    retval.SetValue = result;
    return retval;
 }
 
 function EC_Invert(a){
-    var result = bindings.ec_pt_invert(a.value, a.nid, a.isdec, a.isCompressed);
+    var result = nakesendoBindings.ec_pt_invert(a.value, a.nid, a.isdec, a.isCompressed);
     var retval = new ECPoint(a.nid,a.isdec,a.isCompressed);
     retval.SetValue = result;
     return retval;
 }
 
 function EC_ScalerMultiply(ecpt,bignum){
-    var result = bindings.ec_pt_multiplyScalar(ecpt.value, bignum, ecpt.nid,ecpt.isdec, ecpt.isCompressed);
+    var result = nakesendoBindings.ec_pt_multiplyScalar(ecpt.value, bignum, ecpt.nid,ecpt.isdec, ecpt.isCompressed);
     var retVal = new ECPoint(ecpt.nid, ecpt.isdec, ecpt.isCompressed);
     retVal.SetValue = result;
     return retVal;   
@@ -121,7 +125,7 @@ function EC_ScalerMultiply(ecpt,bignum){
 
 
 function EC_MultiplyScalerByGenerator(bignum, nid, decimal, compressed){
-    var result = bindings.ec_pt_MultiplyByGenerator(bignum, nid,decimal,compressed);
+    var result = nakesendoBindings.ec_pt_MultiplyByGenerator(bignum, nid,decimal,compressed);
     var retval = new ECPoint(nid,decimal,compressed);
     retval.SetValue = result;
     return retval;
