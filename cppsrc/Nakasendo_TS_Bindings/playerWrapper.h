@@ -38,6 +38,7 @@ class jvrssWrap : public Napi::ObjectWrap<jvrssWrap> {
     public:
         static Napi::Object Init(Napi::Env env, Napi::Object exports);
         jvrssWrap(const Napi::CallbackInfo& info); //Constructor to initialise
+        ~jvrssWrap() = default; 
         const std::unique_ptr<jvrss>& getInternalInstance() const { return jvrssPtr;}
         std::unique_ptr<jvrss>& getInternalInstance() { return jvrssPtr;}
     private:
@@ -100,6 +101,7 @@ class playerGroupMetaDataWrap : public Napi::ObjectWrap<playerGroupMetaDataWrap>
         Napi::Value CalculateGroupPrivateKey(const Napi::CallbackInfo&);
         Napi::Value ValidateGroupPrivateKey(const Napi::CallbackInfo&);
         
+        Napi::Value ResetJVRSS(const Napi::CallbackInfo&);
         Napi::Value GetJVRSS(const Napi::CallbackInfo&);
         Napi::Value GetHiddenPolynomial(const Napi::CallbackInfo&);
         Napi::Value GetHiddenEvals(const Napi::CallbackInfo&);

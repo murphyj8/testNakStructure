@@ -1,8 +1,6 @@
 var binary = require('node-pre-gyp');//
 var path = require('path')
-console.log(__dirname)
 var binding_path = binary.find(path.resolve(path.join(__dirname,'../../package.json')));
-console.log(binding_path);
 var nakesendoBindings = require(binding_path)
 var{
     polynomial
@@ -80,9 +78,13 @@ class SinglePlayer {
     }
     
     GetJVRSSForGroup(grpid){
-        var jvrssInstance = new bindings.jvrssWrap();
+        var jvrssInstance = new nakesendoBindings.jvrssWrap();
         this.#m_PlayerGroups.get(grpid).GetJVRSS(jvrssInstance);
         return jvrssInstance;
+    }
+    
+    ResetJVRSSForGroup(grpid){
+        this.#m_PlayerGroups.get(grpid).ResetJVRSS();
     }
 
 }
@@ -147,7 +149,7 @@ function AddPlayerToGroup(grp, ord, p){
 
 function GetGlobalPlayerList(){
     var GlobalPlayerList = [];
-    const PlayerListArray = bindings.GetGlobalPlayerList();
+    const PlayerListArray = nakesendoBindings.GetGlobalPlayerList();
     for(i=0;i<PlayerListArray.length;++i){
         p = new player();
         p.UserID = PlayerListArray[i++];
@@ -160,15 +162,15 @@ function GetGlobalPlayerList(){
 }
 
 function AddPlayerToGlobalList(p){
-    bindings.AddPlayerToGlobalList(p.UserID,p.uri,p.addr, p.port);
+    nakesendoBindings.AddPlayerToGlobalList(p.UserID,p.uri,p.addr, p.port);
 }
 
 function RemovePlayerFromGlobalList(p){
-    bindings.RemovePlayerFromGlobalList(p.UserID,p.uri,p.addr, p.port);
+    nakesendoBindings.RemovePlayerFromGlobalList(p.UserID,p.uri,p.addr, p.port);
 }
 
 function GetPlayerDetails(userid){
-    const playerdetails = bindings.GetPlayerDetailsFromGlobalList(userid);
+    const playerdetails = nakesendoBindings.GetPlayerDetailsFromGlobalList(userid);
     i=0;
     
     if(playerdetails.length == 0)

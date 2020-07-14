@@ -61,7 +61,7 @@ GroupMetaDataWrap::GroupMetaDataWrap(const Napi::CallbackInfo& info) : Napi::Obj
     // copy constructor
      Napi::Object object_parent = info[0].As<Napi::Object>();
      GroupMetaDataWrap* parent = Napi::ObjectWrap<GroupMetaDataWrap>::Unwrap(object_parent);
-     GrpMetaDataPtr.reset(parent->getInternalInstance().get());
+     GrpMetaDataPtr.reset(new GroupMetadata(*parent->getInternalInstance().get()));
      return;
   }
 

@@ -1,4 +1,9 @@
-const nakesendoBindings = require('./build/Release/nakasendo.node');
+var binary = require('node-pre-gyp');//
+var path = require('path')
+console.log(__dirname)
+var binding_path = binary.find(path.resolve(path.join(__dirname,'./package.json')));
+console.log(binding_path);
+var nakesendoBindings = require(binding_path)
 
 var {   
     BigNumber,
@@ -187,7 +192,8 @@ function CreateSharedSecret(GlbGroup, Players, calctype,grpID){
     }
     // clear out the secret sharing containers
     for(pi=0;pi<Players.length;++pi){
-        Players[pi].GetJVRSSForGroup(grpID).reset();
+        //Players[pi].GetJVRSSForGroup(grpID).reset();
+        Players[pi].ResetJVRSSForGroup(grpID);
     }
 
     GlobalGroup.ClearSharedDataContainers();
@@ -202,7 +208,7 @@ var msg = 'I love deadlines. I love the whooshing noise they make as they go by.
 Hm = nakesendoBindings.SHA256(msg)
 console.log(Hm);
 margin = getRandomInt(4,5)
-
+//margin = 1
 var nn = 2 * tt + 1 + margin
 
 
@@ -402,6 +408,8 @@ if(Players[playerKeyRequestorIndex].GetGroup(grpID).ValidateGroupPrivateKey(Grou
 GlobalGroup.ClearSignatureContainers();
 //console.log(GlobalGroup.printPlayerGrp());
 
+
+console.log("Finishing")
 
 
 

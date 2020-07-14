@@ -1,8 +1,6 @@
 var binary = require('node-pre-gyp');//
 var path = require('path')
-console.log(__dirname)
 var binding_path = binary.find(path.resolve(path.join(__dirname,'../../package.json')));
-console.log(binding_path);
 var nakesendoBindings = require(binding_path)
 
 var{

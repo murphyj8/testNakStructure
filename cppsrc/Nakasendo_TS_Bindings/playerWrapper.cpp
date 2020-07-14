@@ -128,7 +128,7 @@ jvrssWrap::jvrssWrap(const Napi::CallbackInfo& info) : Napi::ObjectWrap<jvrssWra
     // copy constructor
      Napi::Object object_parent = info[0].As<Napi::Object>();
      jvrssWrap* parent = Napi::ObjectWrap<jvrssWrap>::Unwrap(object_parent);
-     jvrssPtr.reset(parent->getInternalInstance().get());
+     jvrssPtr.reset(new jvrss(*(parent->getInternalInstance().get())));
      return;
   }
 }
@@ -239,6 +239,7 @@ Napi::Object playerGroupMetaDataWrap::Init(Napi::Env env, Napi::Object exports) 
     InstanceMethod("addPrivateKeyInfo",&playerGroupMetaDataWrap::addPrivateKeyInfo),
     InstanceMethod("CalculateGroupPrivateKey",&playerGroupMetaDataWrap::CalculateGroupPrivateKey),
     InstanceMethod("ValidateGroupPrivateKey",&playerGroupMetaDataWrap::ValidateGroupPrivateKey),
+    InstanceMethod("ResetJVRSS",&playerGroupMetaDataWrap::ResetJVRSS),
     InstanceMethod("GetJVRSS",&playerGroupMetaDataWrap::GetJVRSS),
     InstanceMethod("SecretPreCalcWithKeySharePolynomial",&playerGroupMetaDataWrap::SecretPreCalcWithKeySharePolynomial),
     InstanceMethod("SecretPreCalc",&playerGroupMetaDataWrap::SecretPreCalc),
@@ -263,7 +264,7 @@ playerGroupMetaDataWrap::playerGroupMetaDataWrap(const Napi::CallbackInfo& info)
     // copy constructor
      Napi::Object object_parent = info[0].As<Napi::Object>();
      playerGroupMetaDataWrap* parent = Napi::ObjectWrap<playerGroupMetaDataWrap>::Unwrap(object_parent);
-     playerGrpMetaDataPtr.reset(parent->getInternalInstance().get());
+     playerGrpMetaDataPtr.reset(new playerGroupMetaData( *(parent->getInternalInstance().get())));
      return;
   }
 
@@ -289,6 +290,9 @@ Napi::Value playerGroupMetaDataWrap::printPlayerGrp(const Napi::CallbackInfo& in
     return Napi::String::New(env, output.str());
 }
 
+
+// NB. This returns a copy of the JVRSS information. Please don't use it
+// in secret calculation logic. It's a convenience method only
 Napi::Value playerGroupMetaDataWrap::GetJVRSS(const Napi::CallbackInfo& info){
   Napi::Env env = info.Env();
   if(info.Length() != 1 || !info[0].IsObject()){
@@ -296,8 +300,18 @@ Napi::Value playerGroupMetaDataWrap::GetJVRSS(const Napi::CallbackInfo& info){
   }
   Napi::Object object_parent = info[0].As<Napi::Object>();
   jvrssWrap* parent = Napi::ObjectWrap<jvrssWrap>::Unwrap(object_parent);
-  parent->getInternalInstance().reset(&playerGrpMetaDataPtr->m_transientData);
+  parent->getInternalInstance().reset( new jvrss(playerGrpMetaDataPtr->m_transientData));
   return Napi::Boolean::New(env,true); 
+}
+
+
+Napi::Value playerGroupMetaDataWrap::ResetJVRSS(const Napi::CallbackInfo& info){
+    Napi::Env env = info.Env();
+    if(info.Length() != 0){
+        Napi::TypeError::New(env, "No parameter expected in call to ResetJVRSS").ThrowAsJavaScriptException();
+    }
+    playerGrpMetaDataPtr->m_transientData.reset();
+    return Napi::Boolean::New(env,true); 
 }
 
 Napi::Value playerGroupMetaDataWrap::SetGrpID(const Napi::CallbackInfo& info){

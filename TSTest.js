@@ -1,6 +1,11 @@
 //index.js
 
-const nakesendoBindings = require('./build/Release/nakasendo.node');
+var binary = require('node-pre-gyp');//
+var path = require('path')
+console.log(__dirname)
+var binding_path = binary.find(path.resolve(path.join(__dirname,'./package.json')));
+console.log(binding_path);
+var nakesendoBindings = require(binding_path)
 
 var {   
     BigNumber,
@@ -110,12 +115,17 @@ console.log(jvrssInstance.printJVRSS());
 
 console.log("copy construting")
 jvrssInstance.setFX(xval.toString());
+
 const jvrssCopy = new nakesendoBindings.jvrssWrap(jvrssInstance);
 console.log(jvrssCopy.printJVRSS());
+
+
+
 
 console.log("creating a playermetadatagroup");
 playerGrp = new nakesendoBindings.playerGroupMetaDataWrap();
 console.log(playerGrp.printPlayerGrp());
+
 
 
 var polydegree=10;
@@ -124,7 +134,6 @@ console.log("create a playermetadatagroup with parameters")
 console.log(typeof polydegree);
 console.log(typeof modN);
 pG = new nakesendoBindings.playerGroupMetaDataWrap(polydegree, modN);
-console.log(pG.printPlayerGrp());
 
 var randonNr = new BigNumber(false, mod);
 var grpid = nakesendoBindings.SHA256(randonNr.toString())
@@ -133,8 +142,10 @@ var grpid = nakesendoBindings.SHA256(randonNr.toString())
 pG.SetGrpID(grpid);
 
 
-var empKeyList = GetEmphemeralKeyList(pG);
-console.log(empKeyList);
+
+//var empKeyList = GetEmphemeralKeyList(pG);
+//console.log(empKeyList);
+
 
 var p = new player();
 p.UserID  = "muprhy";
@@ -159,9 +170,10 @@ AddPlayerToGroup(pG,3,p3);
 
 var poly = createPolyWithGrp(pG,2,modN);
 console.log(poly.toString());
+//console.log(pG.printPlayerGrp());
 
 // set ordinal
-pG.SetOrdinal(4);
+//pG.SetOrdinal(4);
 // call preCalculationPolyNomial 
 pG.PolynomialPreCalculation(poly.poly);
 
@@ -183,11 +195,11 @@ console.log(nakesendoBindings.PrintGlobalPlayerList());
 
 console.log(GetGlobalPlayerList().toString());
 
-RemovePlayerFromGlobalList(p1);
+//RemovePlayerFromGlobalList(p1);
 console.log(GetGlobalPlayerList().toString());
 
-var playerinfo = GetPlayerDetails(p3.UserID);
-console.log(playerinfo.toString());
+//var playerinfo = GetPlayerDetails(p3.UserID);
+//console.log(playerinfo.toString());
 
 console.log(nakesendoBindings.GenerateUUID());
 
@@ -195,6 +207,9 @@ console.log(nakesendoBindings.GenerateUUID());
 
 var localPlayerInfo = new nakesendoBindings.playerWrap();
 
+console.log (localPlayerInfo);
 
+
+console.log ("Finishing");
 
 module.exports = nakesendoBindings;

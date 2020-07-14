@@ -40,7 +40,7 @@ class TSCore_API player
 struct TSCore_API jvrss
 {
 	TSCore_API friend std::ostream& operator<< (std::ostream&, const jvrss&);
-    jvrss() { return ; }
+    jvrss() : m_fx (), m_evals(),m_publicEvals() { return ; }
     ~jvrss() = default;
     
     jvrss(const jvrss& obj)
