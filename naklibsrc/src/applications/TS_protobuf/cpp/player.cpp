@@ -4,6 +4,8 @@
 #include <Polynomial/LGInterpolator.h>
 #include <MessageHash/MessageHash.h>
 #include <algorithm>
+#include <AsymKey/AsymKey.h>
+#include <MessageHash/conversions.h>
 
 player::player(const std::string& id, const std::string& uri, const std::string& addr, const std::string& port)
     : m_userID(id), m_uri(uri), m_address(addr), m_port(port)
@@ -277,7 +279,6 @@ void playerGroupMetaData::addPublicEvalsToJVRSS(const std::string& ord, const st
         }else{
             m_transientData.m_publicEvals.push_back(std::make_pair(ord, eval));
         }
-
 }
 
 void playerGroupMetaData::addHiddenEvalsToJVRSS(const std::string& ordinal, const std::vector<std::pair<std::string, std::string> >& hiddenevals){
@@ -385,34 +386,41 @@ bool playerGroupMetaData::CalculateEphemeralKey(){
 
 BigNumber playerGroupMetaData::Signature(const std::string& msg, const std::pair<BigNumber,BigNumber>& ephKey ){
     // s = k*(Hash(msg) + (keyshare*r));
-    std::string hashMsg = HashMsgSHA256(msg); 
     BigNumber hashMsgBN;
-    hashMsgBN.FromHex(hashMsg);
+    hashMsgBN.FromHex(msg);
     BigNumber partialSig = ephKey.first * (hashMsgBN + (m_privateKeyShare * ephKey.second));
     return partialSig;
     
 }
 
 std::pair<std::string, BigNumber> playerGroupMetaData::CalcPartialSignature (const std::string& msg, const int& keyindex){
-    if(m_EmpheralKeyList.empty()){
+    if(m_EmpheralKeyList.empty())
+    {
         throw std::runtime_error("No empheral keys available for use. Please generate some");
     }
     // remember size is one greater than an index i.e index =0 => size = 1
     // so if a user requests index =1 when size =1 that will return an error. 
-    if(m_EmpheralKeyList.size() <= keyindex){
+    if(m_EmpheralKeyList.size() <= keyindex)
+    {
         throw std::runtime_error("No emphemeral keys available for use at the supplied index: " + std::to_string(keyindex));
     }
-    const std::pair<BigNumber,BigNumber>& ephKey = m_EmpheralKeyList[keyindex];
-    BigNumber partialSig = Signature(msg, ephKey);
 
+    const std::pair<BigNumber,BigNumber>& ephKey = m_EmpheralKeyList[keyindex];
+
+    m_signer_r = ephKey.second ;
+    BigNumber partialSig = Signature(msg, ephKey);
     m_EmpheralKeyList.erase( m_EmpheralKeyList.begin() + keyindex);
     
     return std::make_pair(std::to_string(m_ordinal), partialSig);
-    
 }
 
-std::pair<BigNumber, BigNumber> playerGroupMetaData::CalculateGroupSignature(const std::string& msg, const int& ekeyindex, const std::vector<std::pair<std::string, std::string> >& sig){
+SignatureType playerGroupMetaData::CalculateGroupSignature(const std::string& msg, const int& ekeyindex, const std::vector<std::pair<std::string, std::string> >& sig){
     std::vector<std::pair<BigNumber, BigNumber> > sigCurve;
+    std::string ord = std::to_string(m_ordinal);
+    bool ownOrdinalIncluded(true);
+    if (std::find_if(sig.begin(), sig.end(),  [&ord](const std::pair<std::string, std::string>& elem) {return (elem.first == ord);}) == sig.end())
+        ownOrdinalIncluded = !ownOrdinalIncluded;
+
     for(std::vector<std::pair<std::string, std::string> >::const_iterator iter = sig.begin(); iter != sig.end(); ++iter){
         BigNumber ord;
         ord.FromHex(iter->first);
@@ -420,28 +428,53 @@ std::pair<BigNumber, BigNumber> playerGroupMetaData::CalculateGroupSignature(con
         sigvalue.FromHex(iter->second);
         sigCurve.push_back(std::make_pair(ord,sigvalue));
     }
-    
-    if(m_EmpheralKeyList.empty()){
-       throw std::runtime_error ("No empheral keys available to use. Please generate some");
+
+    if(!ownOrdinalIncluded){
+        if(m_EmpheralKeyList.empty()){
+        throw std::runtime_error ("No empheral keys available to use. Please generate some");
+        }
+        if(m_EmpheralKeyList.size() <= ekeyindex){
+            throw std::runtime_error("No empheral keys available to use at the index " + std::to_string(ekeyindex));
+        }
+        // calculate own share (this is done here because we need the r value. It's burned when used)
+        const std::pair<BigNumber,BigNumber>& ephKey = m_EmpheralKeyList[ekeyindex];
+        BigNumber  playerSigData = Signature(msg,ephKey);
+        
+        BigNumber playerOrd; 
+        playerOrd.FromHex(std::to_string(m_ordinal));
+        sigCurve.push_back(std::make_pair(playerOrd,playerSigData));
+        m_signer_r = ephKey.second ;
+        m_EmpheralKeyList.erase( m_EmpheralKeyList.begin() + ekeyindex);
+
     }
-    if(m_EmpheralKeyList.size() <= ekeyindex){
-        throw std::runtime_error("No empheral keys available to use at the index " + std::to_string(ekeyindex));
-    }
-    // calculate own share (this is done here because we need the r value. It's burned when used)
-    const std::pair<BigNumber,BigNumber>& ephKey = m_EmpheralKeyList[ekeyindex];
-    BigNumber  playerSigData = Signature(msg,ephKey);
-    BigNumber playerOrd; 
-    playerOrd.FromHex(std::to_string(m_ordinal));
-    sigCurve.push_back(std::make_pair(playerOrd,playerSigData));
-     
+
     BigNumber zeroPoint = GenerateZero();
     LGInterpolator interp (sigCurve, m_modulo);
     BigNumber sigzero = interp(zeroPoint);
-    
-    std::pair<BigNumber, BigNumber> groupSig = std::make_pair(ephKey.second , sigzero);
-    m_EmpheralKeyList.erase( m_EmpheralKeyList.begin() + ekeyindex);
-    
-    return groupSig;
+    // DER Format
+    BigNumber TWO ;
+    TWO.FromDec("2") ;
+    BigNumber modDivByTwo ;
+    modDivByTwo = m_modulo / TWO ;
+
+    BigNumber canonizedInterpolated_s ( sigzero ) ;
+
+    if ( sigzero > modDivByTwo ) 
+        canonizedInterpolated_s = m_modulo - sigzero ;
+
+    size_t len(-1); 
+    std::unique_ptr<unsigned char[]>  derSignature = DEREncodedSignature
+        (
+            m_signer_r,
+            canonizedInterpolated_s,
+            len
+        );
+
+    std::string sigAsHex = binTohexStr(derSignature,len);
+
+    std::pair<BigNumber, BigNumber> groupSig = std::make_pair(m_signer_r, canonizedInterpolated_s);
+    return SignatureType (groupSig, sigAsHex) ;
+   
 }
 
 void playerGroupMetaData::addPrivateKeyInfo(const std::string& ord, const std::string& priKeyShare){
@@ -477,6 +510,54 @@ BigNumber playerGroupMetaData::CalculateGroupPrivateKey (){
 bool playerGroupMetaData::ValidateGroupPrivateKey(const BigNumber& testKeyVal){
     ECPoint TestVal = MultiplyByGeneratorPt(testKeyVal);
     return (TestVal == m_GroupPublicKey);
+}
+
+bool playerGroupMetaData::allEvalsReceived( ) 
+{
+    if ( m_transientData.m_publicEvals.size() != m_ordinalList.size() )
+        return false ;
+    else
+        return true ;
+}
+
+
+bool playerGroupMetaData::isPresignInitiator( )
+{
+    return m_presignInitiator ;
+}
+
+bool playerGroupMetaData::isShareInitiator( ) 
+{
+    return m_shareInitiator ;
+}
+
+void playerGroupMetaData::setShareInitiator( ) 
+{
+    m_shareInitiator = true ;
+}
+
+void playerGroupMetaData::setPresignInitiator( int numberPresigns ) 
+{
+    m_presignInitiator = true ;
+    if (numberPresigns <= 0 )
+    {
+        std::cout   << "Warning: numberPresigns < 0 ("
+                    << numberPresigns
+                    << "). Defaulting number of presigns to 1" << std::endl ;
+        m_numberPresigns = 1 ;
+    }
+    else
+        m_numberPresigns = numberPresigns ;
+}
+
+int  playerGroupMetaData::numberPresignsLeftToDo( ) 
+{
+    --m_numberPresigns ;
+    if (m_numberPresigns == 0 )
+    {
+        m_presignInitiator = false ;
+    }
+    return m_numberPresigns ;
 }
 
 std::unique_ptr<SinglePlayer> SinglePlayer::m_Instance;

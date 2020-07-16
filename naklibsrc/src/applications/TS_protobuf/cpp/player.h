@@ -11,6 +11,21 @@
 #include <ECPoint/ECPoint.h>
 #include <exportTSCore.h>
 
+struct TSCore_API SignatureType
+{
+    SignatureType
+        ( 
+            const std::pair < BigNumber, BigNumber >& standard, 
+            const std::string& der 
+        )
+        : standardFormat( standard ) 
+        , derFormat( der ) { } 
+
+    std::pair < BigNumber, BigNumber >  standardFormat ;
+    std::string                         derFormat ;
+} ;
+
+
 class TSCore_API player
 {
 
@@ -40,7 +55,7 @@ class TSCore_API player
 struct TSCore_API jvrss
 {
 	TSCore_API friend std::ostream& operator<< (std::ostream&, const jvrss&);
-    jvrss() : m_fx (), m_evals(),m_publicEvals() { return ; }
+    jvrss() { return ; }
     ~jvrss() = default;
     
     jvrss(const jvrss& obj)
@@ -73,7 +88,8 @@ struct TSCore_API jvrss
     std::vector<ECPoint> m_hiddenPolynomial; // private polynonial encrypted
     std::map<std::string,std::vector<ECPoint> > m_allHiddenPolynomials; // all other users polynomials encrypted
     std::map<std::string,std::pair<BigNumber, ECPoint> > m_allVWShares; // V & W from all players
-        
+    
+
 };
 
 struct TSCore_API playerGroupMetaData
@@ -92,7 +108,13 @@ struct TSCore_API playerGroupMetaData
         , m_PrivateKeyShares()
         , m_modulo(mod)
         , m_transientData()
-    {return;}
+        , m_shareInitiator(false)
+        , m_presignInitiator(false)
+        , m_numberPresigns(1)        
+    {
+        m_signer_r = GenerateZero();
+        return;
+    }
     
     playerGroupMetaData(const playerGroupMetaData& obj) 
         : m_id(obj.m_id), m_ordinal(obj.m_ordinal), m_ordinalList(obj.m_ordinalList), m_ordinalAndPlayerList(obj.m_ordinalAndPlayerList)
@@ -101,6 +123,10 @@ struct TSCore_API playerGroupMetaData
         , m_EmpheralKeyList(obj.m_EmpheralKeyList), m_littleK(obj.m_littleK), m_alpha(obj.m_alpha)
         , m_PrivateKeyShares() , m_modulo(obj.m_modulo)
         , m_transientData(obj.m_transientData)
+        , m_shareInitiator(obj.m_shareInitiator)
+        , m_presignInitiator(obj.m_presignInitiator)
+        , m_numberPresigns(obj.m_numberPresigns)
+        , m_signer_r(obj.m_signer_r)
     { return ; }
     
     playerGroupMetaData& operator= (const playerGroupMetaData& obj){
@@ -119,6 +145,10 @@ struct TSCore_API playerGroupMetaData
             m_PrivateKeyShares = obj.m_PrivateKeyShares;
             m_modulo = obj.m_modulo;
             m_transientData = obj.m_transientData;
+            m_shareInitiator = obj.m_shareInitiator;
+            m_presignInitiator = obj.m_presignInitiator;
+            m_numberPresigns = obj.m_numberPresigns;
+            m_signer_r = obj.m_signer_r;
         }
         return *this;
     }
@@ -143,12 +173,21 @@ struct TSCore_API playerGroupMetaData
 
     BigNumber Signature(const std::string&, const std::pair<BigNumber,BigNumber>&);
     std::pair<std::string, BigNumber> CalcPartialSignature (const std::string&, const int& ); 
-    std::pair<BigNumber, BigNumber> CalculateGroupSignature(const std::string& , const int&, const std::vector<std::pair<std::string, std::string> >& ) ; 
+    SignatureType CalculateGroupSignature(const std::string& , const int&, const std::vector<std::pair<std::string, std::string> >& ) ; 
     void addPrivateKeyInfo(const std::string&, const std::string&);
 
     const BigNumber& privateKeyShare () const { return m_privateKeyShare; }
     BigNumber CalculateGroupPrivateKey ();
     bool ValidateGroupPrivateKey(const BigNumber&);
+
+    // to support GRPC
+    bool allEvalsReceived( ) ;
+    bool isPresignInitiator( ) ;
+    bool isShareInitiator( ) ;
+    void setShareInitiator( ) ;
+    void setPresignInitiator( int numberPresigns ) ;
+    int  numberPresignsLeftToDo( ) ;
+    // end support GRPC
 
     std::string m_id; // Group ID
     int m_ordinal; // label assigned by the orchestrator
@@ -169,6 +208,11 @@ struct TSCore_API playerGroupMetaData
     BigNumber m_modulo; 
     
     jvrss m_transientData;
+
+    bool        m_shareInitiator ;
+    bool        m_presignInitiator ;
+    int         m_numberPresigns ;
+    BigNumber   m_signer_r ;
 };
 
 

@@ -702,11 +702,11 @@ Napi::Value playerGroupMetaDataWrap::CalculateGroupSignature(const Napi::Callbac
     }
     sigs.push_back(std::make_pair(vord.As<Napi::String>(),vS.As<Napi::String>()));
   }
-  std::pair<BigNumber, BigNumber> sig = playerGrpMetaDataPtr->CalculateGroupSignature(info[0].As<Napi::String>(),info[1].As<Napi::Number>(),sigs);
+  SignatureType sig = playerGrpMetaDataPtr->CalculateGroupSignature(info[0].As<Napi::String>(),info[1].As<Napi::Number>(),sigs);
   Napi::Array sigRet = Napi::Array::New(env,2);
   int index(0);
-  sigRet[index++]= Napi::String::New(env,sig.first.ToHex());
-  sigRet[index]=Napi::String::New(env,sig.second.ToHex());
+  sigRet[index++]= Napi::String::New(env,sig.standardFormat.first.ToHex());
+  sigRet[index]=Napi::String::New(env,sig.standardFormat.second.ToHex());
   return sigRet;
 }
 

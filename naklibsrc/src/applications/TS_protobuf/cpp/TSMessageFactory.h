@@ -38,6 +38,8 @@ enum class TSCore_API TSMessageDefs
     TS_INITIATE_PRIVATE_EVAL_RESPONSE,
     TS_CREATE_PRIVATE_EVAL_REQUEST,
     TS_CREATE_PRIVATE_EVAL_RESPONSE,
+    TS_CREATE_RX_ALL_EVALS_REQUEST  ,
+    TS_CREATE_RX_ALL_EVALS_RESPONSE,
     TS_CREATE_PRE_SIG_REQUEST,
     TS_CREATE_PRE_SIG_RESPONSE,
     TS_CREATE_PRE_SIG_PLAYER_REQUEST,
@@ -68,18 +70,36 @@ enum class TSCore_API TSMessageDefs
     return stream >> static_cast<typename std::underlying_type<T>::type>(e);
 }
 
-TSCore_API void createRegisterRequest (const player&, std::ostream&);
-TSCore_API void createRegisterReply (const player&, std::ostream& );
-TSCore_API void createListPlayersRequest(const player&, std::ostream&);
-TSCore_API void createListPlayersResponse(const player&, std::ostream&);
-TSCore_API void createGroupRequest(const player&, const int&, const int&, std::ostream&);
-TSCore_API void createGroupReply(const player&, const std::string&, const bool&, std::ostream&);
+TSCore_API void createRegisterRequest( const player&, std::ostream& );
+TSCore_API void createRegisterRequest( const player&, thresholdsignature::RegisterRequest&) ;
+
+TSCore_API void createRegisterReply( const player&, std::ostream& );
+TSCore_API void createRegisterReply( const player&, thresholdsignature::RegisterReply& );
+
+TSCore_API void createListPlayersRequest( const player&, std::ostream& );
+TSCore_API void createListPlayersRequest( const player&, thresholdsignature::GetPlayerListRequest& );
+
+TSCore_API void createListPlayersResponse( const player&, std::ostream& );
+TSCore_API void createListPlayersResponse( const player&, thresholdsignature::GetPlayerListResponse& );
+
+TSCore_API void createGroupRequest( const player&, const int&, const int&, std::ostream& );
+TSCore_API void createGroupRequest( const player&, const int&, const int&, thresholdsignature::CreateGroupRequest& );
+
+TSCore_API void createGroupReply( const player&, const std::string&, const bool&, std::ostream& );
+TSCore_API void createGroupReply( const player&, const std::string&, const bool&, thresholdsignature::CreateGroupReply& );
 
 TSCore_API void createInviteRequest(const std::string&, std::ostream&);
+TSCore_API void createInviteRequest(const std::string&, thresholdsignature::InviteRequest&);
+
 TSCore_API void createInviteReply(const std::string&, const std::string&, const bool&, std::ostream&);
+TSCore_API void createInviteReply(const std::string&, const std::string&, const bool&, thresholdsignature::InviteReply&);
+
 
 TSCore_API void createGroupIsSetRequest(const std::string&, const GroupMetadata&, std::ostream&);
+TSCore_API void createGroupIsSetRequest(const std::string&, const GroupMetadata&, thresholdsignature::GroupIsSetRequest&);
+
 TSCore_API void createGroupIsSetReply(const std::string&, const std::string&, const bool&, std::ostream&);
+TSCore_API void createGroupIsSetReply(const std::string&, const std::string&, const bool&, thresholdsignature::GroupIsSetReply&);
 
 TSCore_API void createDeleteTSGroupRequest(const player&, const std::string&, std::ostream&);
 TSCore_API void createDeleteTSGroupResponse(const player&, const std::string&, const bool&, std::ostream&);
@@ -88,33 +108,70 @@ TSCore_API void createDeleteTSPlayerGroupResponse(const std::string&, const std:
 
 
 TSCore_API void createSecretSharingRequest(const player&, const std::string&, const std::string&, std::ostream&);
+TSCore_API void createSecretSharingRequest(const player&, const std::string&, const std::string&, thresholdsignature::ShareSecretRequest&);
+
 TSCore_API void createSecretSharingResponse(const player&, const std::string&, const std::string&, const bool&, std::ostream&);
+TSCore_API void createSecretSharingResponse(const player&, const std::string&, const std::string&, const bool&, thresholdsignature::ShareSecretReply&);
 
 TSCore_API void createSecretSharingInitEvalRequest(const std::string&, const std::string&, const std::string&, std::ostream& );
+TSCore_API void createSecretSharingInitEvalRequest(const std::string&, const std::string&, const std::string&, thresholdsignature::InitShareEvalsRequest& );
+
 TSCore_API void createSecretSharingInitEvalResponse(const std::string&, const std::string&, const std::string&, const bool&, std::ostream&);
+TSCore_API void createSecretSharingInitEvalResponse(const std::string&, const std::string&, const std::string&, const bool&, thresholdsignature::InitShareEvalsReply&);
+
 TSCore_API void createPrivateDataEvalRequest(const std::string& , const std::string&, const int&, const int&, const jvrss&, std::ostream& );
+TSCore_API void createPrivateDataEvalRequest(const std::string& , const std::string&, const int&, const int&, const jvrss&, thresholdsignature::DistributeEvalsRequest& );
+
+TSCore_API void createRxAllEvalsRequest(const std::string& , const std::string&, const int&, std::ostream& );
+TSCore_API void createRxAllEvalsRequest(const std::string& , const std::string&, const int&, thresholdsignature::RxAllEvalsRequest& );
+
+TSCore_API void createRxAllEvalsReply(const std::string& , const std::string&, const bool&, std::ostream& );
+TSCore_API void createRxAllEvalsReply(const std::string& , const std::string&, const bool&, thresholdsignature::RxAllEvalsReply& );
+
 TSCore_API void createPrivateDataEvalResponse(const std::string&, const std::string&, const bool&, std::ostream&);
+TSCore_API void createPrivateDataEvalResponse(const std::string&, const std::string&, const bool&, thresholdsignature::DistributeEvalsReply&);
 
 TSCore_API void createSecretSharingPlayerDataRequest(const std::string&, const std::string&, const std::string&, std::ostream&);
+TSCore_API void createSecretSharingPlayerDataRequest(const std::string&, const std::string&, const std::string&, thresholdsignature::ShareSecretDataRequest&);
+
 TSCore_API void createSecretSharingPlayerDataResponse(const std::string&, const std::string&, const std::string& , const int&, const jvrss&, std::ostream&);
+TSCore_API void createSecretSharingPlayerDataResponse(const std::string&, const std::string&, const std::string& , const int&, const jvrss&, thresholdsignature::ShareSecretDataReply&);
 
 TSCore_API void createSecretSharingCollatedDataRequest(const std::string&, const std::string&, const std::string&, const GroupMetadata&, std::ostream&);
+TSCore_API void createSecretSharingCollatedDataRequest(const std::string&, const std::string&, const std::string&, const GroupMetadata&, thresholdsignature::CollatedSecretRequest&);
 
 TSCore_API void createSecretSharingCollatedPlayerResponse(const std::string&, const std::string&, const std::string&, std::ostream&);
+TSCore_API void createSecretSharingCollatedPlayerResponse(const std::string&, const std::string&, const std::string&, thresholdsignature::CollatedSecretReply&);
 
 TSCore_API void createEphemeralKeyDataRequest(const std::string&, const std::string&, std::ostream&);
+TSCore_API void createEphemeralKeyDataRequest(const std::string&, const std::string&, thresholdsignature::InitPresignRequest&);
+
 TSCore_API void createEphemeralKeyDataResponse(const std::string&, const std::string&, std::ostream&);
+TSCore_API void createEphemeralKeyDataResponse(const std::string&, const std::string&, thresholdsignature::InitPresignReply&);
 
 TSCore_API void createEphermalKeyPlayerDataRequest(const std::string&, const std::string&, std::ostream&);
+TSCore_API void createEphermalKeyPlayerDataRequest(const std::string&, const std::string&, thresholdsignature::ShareVWDataMessageRequest&);
+
 TSCore_API void createEphemeralKeyPlayerDataResponse(const std::string&, const std::string&, const int&, const std::pair<BigNumber, ECPoint>&, std::ostream&) ;
+TSCore_API void createEphemeralKeyPlayerDataResponse(const std::string&, const std::string&, const int&, const std::pair<BigNumber, ECPoint>&, thresholdsignature::ShareVWDataMessage&) ;
 
 TSCore_API void createEphemeralKeyCollatedDataRequest(const std::string&, const std::string&, const GroupMetadata&, std::ostream&);
+TSCore_API void createEphemeralKeyCollatedDataRequest(const std::string&, const std::string&, const GroupMetadata&, thresholdsignature::CollatedVWShareRequest&);
+
 TSCore_API void createAEphemeralKeyCollatedDataResponse(const std::string&, const std::string&, const std::string&, std::ostream&);
+TSCore_API void createAEphemeralKeyCollatedDataResponse(const std::string&, const std::string&, const std::string&, thresholdsignature::CollatedVWShareReply&);
 
 TSCore_API void createSignatureRequest(const std::string& , const std::string&, const std::string&, const int&, std::ostream& );
+TSCore_API void createSignatureRequest(const std::string& , const std::string&, const std::string&, const int&, thresholdsignature::InitSignatureRequest& );
+
 TSCore_API void createSignatureResponse(const std::string&, const std::string&, const GroupMetadata&, const std::string& , const int&, std::ostream&);
+TSCore_API void createSignatureResponse(const std::string&, const std::string&, const GroupMetadata&, const std::string& , const int&, thresholdsignature::SignDataMessage&);
+
 TSCore_API void createSignaturePlayerDataRequest(const std::string&, const std::string&, const std::string&, const int&, std::ostream&);
+TSCore_API void createSignaturePlayerDataRequest(const std::string&, const std::string&, const std::string&, const int&, thresholdsignature::ShareOfSigRequest&);
+
 TSCore_API void createSignaturePlayerDataResponse(const std::string&, const std::string&, const std::pair<std::string, BigNumber>&, const int&, std::ostream&);
+TSCore_API void createSignaturePlayerDataResponse(const std::string&, const std::string&, const std::pair<std::string, BigNumber>&, const int&, thresholdsignature::ShareOfSigReply&);
 
 TSCore_API void createPrivateKeyRequest(const std::string&, const std::string&, const std::vector<std::string>&, std::ostream& );
 TSCore_API void createPrivateKeyResponse(const std::string&, const std::string&, const bool&, std::ostream&);
