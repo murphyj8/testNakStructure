@@ -21,7 +21,7 @@
   "dependencies": {
     "aws-sdk": "^2.182.0",
     "chai": "^4.2.0",
-    "minimist": "0.2.1",
+    "minimist": "1.2.6",
     "node-addon-api": "^1.7.2",
     "node-pre-gyp": "0.6.x",
     "request": "^2.88.2"
